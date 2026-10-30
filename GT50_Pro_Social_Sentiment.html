@@ -1,0 +1,333 @@
+<!DOCTYPE html><html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>GT50 Pro social sentiment</title>
+<style>:root{--font-anthropic-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,sans-serif;--font-anthropic-serif:Georgia,"Times New Roman",serif;
+--color-fg:#1f1e1d;--color-fg-muted:#6b6966;--color-bg:#faf9f5;--color-panel:#ffffff;--color-border-line:#e6e3dc;--color-ok:#2f7d4f;--color-warn:#b8730a;--color-bad:#c2412d;
+--cds-font-size-caption:12.5px;--cds-font-size-body:15px;--cds-font-size-heading:18px;--cds-font-size-title:30px;--cds-font-weight-medium:600;
+--cds-gap-xs:4px;--cds-gap-sm:8px;--cds-gap-md:16px;--cds-gap-lg:24px;--cds-gap-xl:36px;--cds-pad-xs:4px;--cds-pad-sm:8px;--cds-pad-md:12px;--cds-pad-lg:18px;--cds-radius:8px;
+--cds-chart-muted:#cfcac0;--cds-chart-grid:#ece9e2;--cds-chart-axis:#bdb8ad;--cds-surface-popover:#fff;--cds-border:#e0dcd3;--cds-shadow-popover:0 4px 16px rgba(0,0,0,.12);--cds-text-secondary:#6b6966;--cds-dur-slow:.3s}
+@media (prefers-color-scheme:dark){:root{--color-fg:#ecebe8;--color-fg-muted:#a29f98;--color-bg:#1c1b1a;--color-panel:#262523;--color-border-line:#3a3835;--color-ok:#5fbf86;--color-warn:#e0a346;--color-bad:#ec7b66;--cds-chart-muted:#55524d;--cds-chart-grid:#33312e;--cds-chart-axis:#5a5752;--cds-surface-popover:#2c2b29;--cds-border:#44423e;--cds-text-secondary:#a29f98}}
+body{margin:0;background:var(--color-bg);font-family:var(--font-anthropic-sans)}#dash-root{max-width:1280px;margin:0 auto;padding:28px 24px 60px}
+.export-note{font:12px var(--font-anthropic-sans);color:var(--color-fg-muted);text-align:center;padding:10px}
+
+.gt{font-family:var(--font-anthropic-sans);color:var(--color-fg);display:flex;flex-direction:column;gap:var(--cds-gap-xl)}
+.gt h1{font-family:var(--font-anthropic-serif);font-weight:400;font-size:var(--cds-font-size-title);margin:0}
+.gt h2{font-size:var(--cds-font-size-heading);font-weight:var(--cds-font-weight-medium);margin:0 0 var(--cds-gap-xs)}
+.gt h3{font-size:var(--cds-font-size-body);font-weight:var(--cds-font-weight-medium);margin:0}
+.gt p{margin:0}
+.gt .muted{color:var(--color-fg-muted);font-size:var(--cds-font-size-caption)}
+.gt .lede{font-size:var(--cds-font-size-body);max-width:60rem;line-height:1.5}
+.gt .lede b,.gt .ev b{font-weight:600}
+.gt .eyebrow{font-size:var(--cds-font-size-caption);letter-spacing:.06em;text-transform:uppercase;color:var(--color-fg-muted);margin-bottom:var(--cds-gap-xs)}
+.gt .win .eyebrow{color:var(--color-ok)}
+.gt .risk .eyebrow{color:var(--color-bad)}
+.gt .act .eyebrow{color:var(--color-warn)}
+.gt .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,20rem),1fr));gap:var(--cds-gap-md)}
+.gt .tiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,12rem),1fr));gap:var(--cds-gap-md)}
+.gt .card{background:var(--color-panel);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);padding:var(--cds-pad-lg);display:flex;flex-direction:column;gap:var(--cds-gap-sm);min-width:0}
+.gt .big{font-family:var(--font-anthropic-serif);font-weight:400;font-size:2.2rem;line-height:1.1;font-variant-numeric:tabular-nums}
+.gt .tile .lbl{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gt .chart{position:relative;min-height:12rem}
+.gt .chart.tall{min-height:22rem}
+.gt .tip{position:absolute;background:var(--cds-surface-popover);border:1px solid var(--cds-border);border-radius:var(--cds-radius);box-shadow:var(--cds-shadow-popover);padding:var(--cds-pad-xs) var(--cds-pad-sm);font-size:var(--cds-font-size-caption);pointer-events:none;max-width:16rem;z-index:2}
+.gt .tip .k{color:var(--cds-text-secondary)}
+.gt .legend{display:flex;gap:var(--cds-gap-md);flex-wrap:wrap;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gt .sw{display:inline-block;width:.65rem;height:.65rem;border-radius:2px;margin-right:.35rem;vertical-align:middle}
+.gt .sw.ok{background:var(--color-ok)}.gt .sw.bad{background:var(--color-bad)}.gt .sw.neu{background:var(--cds-chart-muted)}
+.gt .praise{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:var(--cds-gap-sm)}
+.gt .praise li{border-left:3px solid var(--color-ok);padding-left:var(--cds-pad-sm)}
+.gt .praise .q{font-size:var(--cds-font-size-body)}
+.gt table{width:100%;border-collapse:collapse;font-size:var(--cds-font-size-caption);font-variant-numeric:tabular-nums}
+.gt th{text-align:left;font-weight:var(--cds-font-weight-medium);color:var(--color-fg-muted);padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);position:sticky;top:0;background:var(--color-panel);white-space:nowrap}
+.gt th button{all:unset;cursor:pointer}
+.gt td{padding:var(--cds-pad-xs) var(--cds-pad-sm);border-bottom:1px solid var(--color-border-line);vertical-align:top}
+.gt td.n,.gt th.n{text-align:right}
+.gt .scroll{max-height:26rem;overflow:auto}
+.gt .pill{display:inline-block;padding:0 .4rem;border-radius:999px;font-size:var(--cds-font-size-caption);border:1px solid var(--color-border-line)}
+.gt .tone-pos{color:var(--color-ok)}.gt .tone-neg{color:var(--color-bad)}
+.gt .dec{counter-reset:d;display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,17rem),1fr));gap:var(--cds-gap-md)}
+.gt .dec .card{border-top:3px solid var(--color-warn)}
+.gt .dec h3::before{counter-increment:d;content:counter(d) ". "}
+.gt .ev{font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)}
+.gt a{color:inherit}
+.gt input.search{font:inherit;font-size:var(--cds-font-size-caption);padding:var(--cds-pad-xs) var(--cds-pad-sm);border:1px solid var(--color-border-line);border-radius:var(--cds-radius);background:var(--color-bg);color:var(--color-fg);max-width:18rem}
+.gt .verdict{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,16rem),1fr));gap:var(--cds-gap-md)}
+.gt .verdict .card{border-left:3px solid var(--color-border-line)}
+.gt .verdict .win{border-left-color:var(--color-ok)}.gt .verdict .risk{border-left-color:var(--color-bad)}.gt .verdict .act{border-left-color:var(--color-warn)}
+[data-dash-source-state=empty]{color:transparent}
+[data-dash-source-state=refreshing]{opacity:.5;transition:opacity var(--cds-dur-slow)}
+</style><script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script><script>window.DASH_DATA={"platform_kpis": [{"platform": "YouTube", "content_pieces": 10, "creators": 9, "views": 1964254, "likes": 27182, "comments": 3306, "comments_read": 766, "sample_n": 100, "sample_pos": 11, "sample_neg": 43, "sample_neu": 46}, {"platform": "Instagram", "content_pieces": 60, "creators": 47, "views": 4752057, "likes": 236037, "comments": 5774, "comments_read": 1371, "sample_n": 80, "sample_pos": 18, "sample_neg": 29, "sample_neu": 33}], "content": [{"id": "yzgY1wVb4aU", "platform": "YouTube", "account": "Trakin Tech", "owner": "Creator", "title": "Unboxing & first look: 1.5K 144Hz, D8400 & real gaming ecosystem", "date": "2026-10-27", "views": 1055994, "likes": 12464, "comments": 888, "read_pos": 33, "read_neg": 30, "read_n": 120, "url": "https://www.youtube.com/watch?v=yzgY1wVb4aU"}, {"id": "Tauc0GnnqXw", "platform": "YouTube", "account": "Techy Pathshala", "owner": "Creator", "title": "Unboxing & review: India's first liquid-cooled gaming kit", "date": "2026-10-27", "views": 331898, "likes": 3960, "comments": 651, "read_pos": 14, "read_neg": 66, "read_n": 120, "url": "https://www.youtube.com/watch?v=Tauc0GnnqXw"}, {"id": "0CExRPIiozs", "platform": "YouTube", "account": "Venom's Tech", "owner": "Creator", "title": "More than just a gaming phone?", "date": "2026-10-28", "views": 241564, "likes": 4438, "comments": 531, "read_pos": 41, "read_neg": 28, "read_n": 120, "url": "https://www.youtube.com/watch?v=0CExRPIiozs"}, {"id": "m9gUh73Z0k0", "platform": "YouTube", "account": "Techno Ruhez", "owner": "Creator", "title": "The craziest gaming phone of 2026", "date": "2026-10-27", "views": 188591, "likes": 4154, "comments": 694, "read_pos": 19, "read_neg": 61, "read_n": 120, "url": "https://www.youtube.com/watch?v=m9gUh73Z0k0"}, {"id": "q5dYnRQ-Fi4", "platform": "YouTube", "account": "TechWiser", "owner": "Creator", "title": "Infinix bought the best gaming phone", "date": "2026-10-28", "views": 48757, "likes": 743, "comments": 122, "read_pos": 9, "read_neg": 23, "read_n": 69, "url": "https://www.youtube.com/watch?v=q5dYnRQ-Fi4"}, {"id": "cKhsvi2AJWE", "platform": "YouTube", "account": "RSGT Plays", "owner": "Creator", "title": "Worth the hype? Price & colours revealed", "date": "2026-10-19", "views": 37139, "likes": 250, "comments": 181, "read_pos": 4, "read_neg": 23, "read_n": 59, "url": "https://www.youtube.com/watch?v=cKhsvi2AJWE"}, {"id": "rj61AhtuLX8", "platform": "YouTube", "account": "Gaming Pathshala", "owner": "Creator", "title": "Gaming test: BGMI 120 FPS with liquid cooling", "date": "2026-10-30", "views": 35282, "likes": 1023, "comments": 172, "read_pos": 17, "read_neg": 52, "read_n": 120, "url": "https://www.youtube.com/watch?v=rj61AhtuLX8"}, {"id": "bUO4b76JCB4", "platform": "YouTube", "account": "Hardwire", "owner": "Creator", "title": "Most practical gaming phone", "date": "2026-10-26", "views": 19351, "likes": 96, "comments": 32, "read_pos": 1, "read_neg": 8, "read_n": 14, "url": "https://www.youtube.com/watch?v=bUO4b76JCB4"}, {"id": "uZCny-zn8Tc", "platform": "YouTube", "account": "Sai Tech Guru", "owner": "Creator", "title": "₹35,999 gaming phone is coming", "date": "2026-10-27", "views": 5343, "likes": 32, "comments": 19, "read_pos": 1, "read_neg": 9, "read_n": 13, "url": "https://www.youtube.com/watch?v=uZCny-zn8Tc"}, {"id": "DkEIGaQNuZ0", "platform": "YouTube", "account": "Infinix India", "owner": "Brand", "title": "Is this the ultimate mobile gaming setup? Unboxing", "date": "2026-10-30", "views": 335, "likes": 22, "comments": 16, "read_pos": 1, "read_neg": 5, "read_n": 11, "url": "https://www.youtube.com/watch?v=DkEIGaQNuZ0"}, {"id": "DfFChJ1AgAL", "platform": "Instagram", "account": "itz_mohit_verma", "owner": "Creator", "title": "Controller + dock + cooler in one box: worth it?", "date": "2026-10-29", "views": 780678, "likes": 37293, "comments": 83, "read_pos": 24, "read_neg": 16, "read_n": 57, "url": "https://www.instagram.com/p/DfFChJ1AgAL/"}, {"id": "De_7RHSxm3X", "platform": "Instagram", "account": "techstuff01", "owner": "Creator", "title": "Segment-first liquid cooling phone", "date": "2026-10-27", "views": 680405, "likes": 20690, "comments": 123, "read_pos": 9, "read_neg": 5, "read_n": 48, "url": "https://www.instagram.com/p/De_7RHSxm3X/"}, {"id": "De_uCXdvQ6K", "platform": "Instagram", "account": "mrgeekguy", "owner": "Creator", "title": "PS5 ❌ This phone 💯", "date": "2026-10-27", "views": 409890, "likes": 19256, "comments": 139, "read_pos": 5, "read_neg": 22, "read_n": 50, "url": "https://www.instagram.com/p/De_uCXdvQ6K/"}, {"id": "De6xMHTtevJ", "platform": "Instagram", "account": "techy.pathshala", "owner": "Creator", "title": "Turns your phone into a gaming console?!", "date": "2026-10-25", "views": 408276, "likes": 29249, "comments": 308, "read_pos": 12, "read_neg": 19, "read_n": 47, "url": "https://www.instagram.com/p/De6xMHTtevJ/"}, {"id": "DfC5Yeeol0s", "platform": "Instagram", "account": "techgyan.news", "owner": "Creator", "title": "GT 50 Pro disappointed me badly 💔", "date": "2026-10-28", "views": 317202, "likes": 29215, "comments": 275, "read_pos": 11, "read_neg": 23, "read_n": 44, "url": "https://www.instagram.com/p/DfC5Yeeol0s/"}, {"id": "De6K31BTfOX", "platform": "Instagram", "account": "the_gamer_rajput", "owner": "Creator", "title": "Gamers, it's time to level up", "date": "2026-10-25", "views": 232650, "likes": 13724, "comments": 272, "read_pos": 17, "read_neg": 8, "read_n": 57, "url": "https://www.instagram.com/p/De6K31BTfOX/"}, {"id": "DfCdGBhR-0E", "platform": "Instagram", "account": "techysomz_kannada", "owner": "Creator", "title": "Brings mobile gaming into a new league (Kannada)", "date": "2026-10-28", "views": 180822, "likes": 10207, "comments": 63, "read_pos": 8, "read_neg": 7, "read_n": 31, "url": "https://www.instagram.com/p/DfCdGBhR-0E/"}, {"id": "De18znKPJM5", "platform": "Instagram", "account": "shakil07.tech", "owner": "Creator", "title": "This phone turns into a gaming console?!", "date": "2026-10-24", "views": 128049, "likes": 7634, "comments": 79, "read_pos": 0, "read_neg": 15, "read_n": 35, "url": "https://www.instagram.com/p/De18znKPJM5/"}, {"id": "DeZSj9ETKGS", "platform": "Instagram", "account": "esportspubgmobile", "owner": "Creator", "title": "Born for battle. Built for glory. (photo post)", "date": "2026-10-12", "views": 0, "likes": 12846, "comments": 170, "read_pos": 18, "read_neg": 3, "read_n": 47, "url": "https://www.instagram.com/p/DeZSj9ETKGS/"}, {"id": "DeRbHnJO1si", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "50 million clicks later… the wait is over", "date": "2026-10-09", "views": 88777, "likes": 2378, "comments": 356, "read_pos": 12, "read_neg": 5, "read_n": 48, "url": "https://www.instagram.com/p/DeRbHnJO1si/"}, {"id": "De4dOkBB8dm", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "GT50 Pro is coming with a squad: pre-booking live", "date": "2026-10-24", "views": 86866, "likes": 4213, "comments": 314, "read_pos": 11, "read_neg": 10, "read_n": 39, "url": "https://www.instagram.com/p/De4dOkBB8dm/"}, {"id": "De7GtReRKUU", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "Keepin' it cool, keepin' it GT", "date": "2026-10-25", "views": 64549, "likes": 2095, "comments": 234, "read_pos": 14, "read_neg": 11, "read_n": 51, "url": "https://www.instagram.com/p/De7GtReRKUU/"}, {"id": "DehJ9TTNEPC", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "The two true tones of GT50 Pro", "date": "2026-10-15", "views": 59363, "likes": 2245, "comments": 269, "read_pos": 15, "read_neg": 7, "read_n": 53, "url": "https://www.instagram.com/p/DehJ9TTNEPC/"}, {"id": "DeuFrJ1BHj4", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "Incoming intel: wild card entry", "date": "2026-10-20", "views": 54329, "likes": 1432, "comments": 158, "read_pos": 3, "read_neg": 2, "read_n": 31, "url": "https://www.instagram.com/p/DeuFrJ1BHj4/"}, {"id": "DfCe7rGtOzA", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "Racing through the years", "date": "2026-10-28", "views": 31893, "likes": 566, "comments": 341, "read_pos": 8, "read_neg": 11, "read_n": 37, "url": "https://www.instagram.com/p/DfCe7rGtOzA/"}, {"id": "DemN_iqBF8n", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "Things are about to get a lot more interesting (photo post)", "date": "2026-10-17", "views": 0, "likes": 6315, "comments": 327, "read_pos": 8, "read_neg": 7, "read_n": 44, "url": "https://www.instagram.com/p/DemN_iqBF8n/"}, {"id": "De_OS9fhVwm", "platform": "Instagram", "account": "infinixindia", "owner": "Brand", "title": "The wait ends now: ecosystem pre-orders open (photo post)", "date": "2026-10-27", "views": 0, "likes": 2194, "comments": 672, "read_pos": 2, "read_neg": 30, "read_n": 51, "url": "https://www.instagram.com/p/De_OS9fhVwm/"}], "themes": [{"theme": "Price / ₹69,999 bundle", "mentions": 456, "positive": 22, "negative": 267, "youtube_mentions": 181, "instagram_mentions": 275}, {"theme": "Phone-only SKU demand", "mentions": 123, "positive": 3, "negative": 85, "youtube_mentions": 49, "instagram_mentions": 74}, {"theme": "Chipset (Dimensity 8400)", "mentions": 149, "positive": 5, "negative": 81, "youtube_mentions": 104, "instagram_mentions": 45}, {"theme": "Switching to competitors", "mentions": 225, "positive": 4, "negative": 206, "youtube_mentions": 150, "instagram_mentions": 75}, {"theme": "Gaming ecosystem & controller", "mentions": 87, "positive": 7, "negative": 40, "youtube_mentions": 42, "instagram_mentions": 45}, {"theme": "Liquid cooling", "mentions": 57, "positive": 13, "negative": 18, "youtube_mentions": 28, "instagram_mentions": 29}, {"theme": "Design & colours", "mentions": 88, "positive": 17, "negative": 38, "youtube_mentions": 36, "instagram_mentions": 52}, {"theme": "Gaming performance", "mentions": 200, "positive": 38, "negative": 75, "youtube_mentions": 129, "instagram_mentions": 71}, {"theme": "Service & older GT updates", "mentions": 115, "positive": 14, "negative": 33, "youtube_mentions": 50, "instagram_mentions": 65}, {"theme": "Paid-promo scepticism", "mentions": 30, "positive": 2, "negative": 15, "youtube_mentions": 12, "instagram_mentions": 18}], "comments": [{"rank": 1, "platform": "Instagram", "comment": "Phone 🤡 price 🥶", "likes": 1312, "tone": "Critical", "theme": "Price"}, {"rank": 2, "platform": "Instagram", "comment": "Iqoo always for fps 💀💀💀💸", "likes": 782, "tone": "Critical", "theme": "Competitors"}, {"rank": 3, "platform": "YouTube", "comment": "Kya din aa gaye hai... Infinix GT series ka phone Rs 70000.. Gajab hi ho raha hai.. 😂", "likes": 550, "tone": "Critical", "theme": "Price"}, {"rank": 4, "platform": "Instagram", "comment": "phone ❌ pc in budget ✅ 👀", "likes": 510, "tone": "Critical", "theme": "Price"}, {"rank": 5, "platform": "Instagram", "comment": "69k me hum i phone le lenge 😂😂😂", "likes": 343, "tone": "Critical", "theme": "Competitors"}, {"rank": 6, "platform": "Instagram", "comment": "Under 30,000 ❌ under 80,000😂😂", "likes": 299, "tone": "Critical", "theme": "Price"}, {"rank": 7, "platform": "YouTube", "comment": "Bhai 70 hazar mein mtk 8400 🤡 iQOO 15r is 10 time's better than infinix gt 50 pro", "likes": 287, "tone": "Critical", "theme": "Chipset"}, {"rank": 8, "platform": "YouTube", "comment": "70 hazar mein 8400 are you comedy me😂😂😂", "likes": 264, "tone": "Critical", "theme": "Chipset"}, {"rank": 9, "platform": "YouTube", "comment": "OPPO and Infinix ka confidence level high ha 😂😂😂😂", "likes": 254, "tone": "Critical", "theme": "Price"}, {"rank": 10, "platform": "YouTube", "comment": "70k is joking 😂😂😂", "likes": 226, "tone": "Critical", "theme": "Price"}, {"rank": 11, "platform": "YouTube", "comment": "Mtlb wo alag hi level ka brand h, GT 30 Pro 25k 💀 aur GT 50 Pro 70k 🤡", "likes": 207, "tone": "Critical", "theme": "Price"}, {"rank": 12, "platform": "Instagram", "comment": "Very bad price launching 😢 (on @infinixindia)", "likes": 196, "tone": "Critical", "theme": "Price"}, {"rank": 13, "platform": "YouTube", "comment": "Iss gaming ecosystem ka kya kaam jab ye powerful hi na ho? 🤡", "likes": 154, "tone": "Critical", "theme": "Ecosystem"}, {"rank": 14, "platform": "Instagram", "comment": "I expected 40k but it's too much (on @infinixindia)", "likes": 148, "tone": "Critical", "theme": "Phone-only SKU"}, {"rank": 15, "platform": "YouTube", "comment": "Alto engine in Porsche body", "likes": 70, "tone": "Critical", "theme": "Chipset"}, {"rank": 16, "platform": "Instagram", "comment": "INFINIX DAY BY DAY 📈 ..... Nice presentation and editing", "likes": 203, "tone": "Praise", "theme": "Brand momentum"}, {"rank": 17, "platform": "YouTube", "comment": "Infinix ka bhi comeback ho gaya ❤❤😊", "likes": 66, "tone": "Praise", "theme": "Brand momentum"}, {"rank": 18, "platform": "Instagram", "comment": "😍😍 Every gamer dream phone 😍", "likes": 42, "tone": "Praise", "theme": "Product desire"}, {"rank": 19, "platform": "Instagram", "comment": "Finally GT 50 Pro is hereeee ❤️❤️❤️", "likes": 20, "tone": "Praise", "theme": "Launch hype"}, {"rank": 20, "platform": "Instagram", "comment": "Bhai main to 27 ko launch hote hi le lunga ❤️", "likes": 18, "tone": "Praise", "theme": "Purchase intent"}, {"rank": 21, "platform": "Instagram", "comment": "Device looks killer 🔥🔥🔥", "likes": 14, "tone": "Praise", "theme": "Design"}, {"rank": 22, "platform": "YouTube", "comment": "I'm more interested about the magnetic cooler than this phone", "likes": 13, "tone": "Praise", "theme": "Liquid cooling"}, {"rank": 23, "platform": "Instagram", "comment": "Prebooked it 🔥", "likes": 10, "tone": "Praise", "theme": "Purchase intent"}, {"rank": 24, "platform": "Instagram", "comment": "Let's gooo!! 🔥 My dream gaming device 🙌", "likes": 10, "tone": "Praise", "theme": "Product desire"}, {"rank": 25, "platform": "YouTube", "comment": "Gt 50 pro hits different 🥶🥵🚀🔥", "likes": 5, "tone": "Praise", "theme": "Product desire"}, {"rank": 26, "platform": "YouTube", "comment": "Price 😢 Processor 😢 Ecosystem ❤", "likes": 4, "tone": "Mixed", "theme": "Ecosystem"}, {"rank": 27, "platform": "YouTube", "comment": "Literally Ironman & Doctor Doom colour variants 🤩🤩🤩", "likes": 3, "tone": "Praise", "theme": "Design"}], "hashtags": [{"hashtag": "#GameTogether", "platform": "Instagram", "checked": 31, "on_product": 31}, {"hashtag": "#InfinixGT50Pro", "platform": "Instagram", "checked": 61, "on_product": 61}, {"hashtag": "#InfinixGT50Pro", "platform": "YouTube", "checked": 10, "on_product": 10}, {"hashtag": "#GT50", "platform": "Instagram", "checked": 24, "on_product": 9}, {"hashtag": "#GT50", "platform": "YouTube", "checked": 10, "on_product": 3}]};(function(){const draws={},calcs={};const res={};
+function get(id){if(id in res)return res[id];if(calcs[id]){const c=calcs[id];res[id]=c.fn(...c.inputs.map(i=>get(i)));return res[id];}return DASH_DATA[id]||[];}
+window.dash={colors:['#4a6fd1','#d1734a','#3f9d72','#9b59b6','#c9a227','#2a9fb8','#d14a7a','#7a7a7a'],
+data(id){const d=get(id);return {status:'ok',data:d,columns:d[0]?Object.keys(d[0]):[],meta:[]};},
+calc(id,o){calcs[id]=o;},onData(fn){fn();},refresh(){},params(){return{};},setParams(){},resetParams(){},setLink(){},
+draw(name,fn){if(fn){draws[name]=fn;}else{run(name);}}};
+function run(name){const f=draws[name];if(!f)return;document.querySelectorAll('[data-draw="'+name+'"]').forEach(el=>{try{f(el)}catch(e){console.error(name,e)}});}
+window.__runAll=()=>Object.keys(draws).forEach(run);
+let t;window.addEventListener('resize',()=>{clearTimeout(t);t=setTimeout(__runAll,150);});})();</script></head><body><div id="dash-root">
+
+
+<div class="gt">
+  <header id="top">
+    <p class="eyebrow">Infinix India · GT50 Pro launch · Instagram &amp; YouTube · 9–30 Oct 2026</p>
+    <h1>GT50 Pro social sentiment</h1>
+    <p class="lede">The launch won the attention battle: <b data-draw="h-views" data-source="totals" data-field="views">—</b> views across <b data-draw="h-pieces" data-source="totals" data-field="content_pieces">—</b> brand and creator posts in three weeks. But the conversation has turned into a referendum on the ₹69,999 bundle price. <b data-draw="h-price" data-source="price_share" data-field="share">—</b> of all comments we read mention price, and the most-liked comments on both platforms are price jokes. The product story worked. Price is now what decides whether people buy.</p>
+  </header>
+
+  <section class="verdict" id="verdict">
+    <div class="card win"><p class="eyebrow">What we won</p><p>Reach and creator voice. India's first liquid-cooled gaming kit and the phone-as-a-console idea became creators' own headlines.</p></div>
+    <div class="card risk"><p class="eyebrow">What's at risk</p><p>Value perception. Buyers anchor at ₹35–40K, see a Dimensity 8400, and line it up against iQOO, POCO and OPPO.</p></div>
+    <div class="card act"><p class="eyebrow">Decision needed</p><p>A phone-only SKU and a value-led relaunch of the ecosystem story, before the price narrative sets in.</p></div>
+  </section>
+
+  <section id="wins" class="win">
+    <p class="eyebrow">Where the brand did a fantastic job</p>
+    <h2>Infinix owned the gaming-phone conversation this launch</h2>
+    <div class="tiles">
+      <div class="card tile"><span class="lbl">Video views and plays (YouTube + Instagram)</span><span class="big" data-draw="t-views" data-source="totals" data-field="views">—</span><span class="muted">In about three weeks, mostly earned through creators</span></div>
+      <div class="card tile"><span class="lbl">Creator accounts that posted</span><span class="big" data-draw="t-creators" data-source="totals" data-field="creators">—</span><span class="muted">Tech, gaming and esports voices, including regional languages</span></div>
+      <div class="card tile"><span class="lbl">Trakin Tech unboxing views</span><span class="big" data-draw="t-top" data-source="content" data-field="views" data-where="id=yzgY1wVb4aU">—</span><span class="muted">Passed a million views within three days of posting</span></div>
+      <div class="card tile"><span class="lbl">#GameTogether posts that are about the GT50 Pro</span><span class="big" data-draw="t-gt" data-source="hashtag_share" data-field="share" data-where="key=GameTogether-IG">—</span><span class="muted">A clean, fully owned campaign hashtag</span></div>
+    </div>
+    <div class="grid" style="margin-top:var(--cds-gap-md)">
+      <div class="card">
+        <h3 id="top-content">Most-watched content</h3>
+        <p class="muted">Views or plays per piece. Creators did most of the heavy lifting, and they picked up the brand's own framing: "liquid-cooled gaming kit", "turns your phone into a console", "segment-first".</p>
+        <div class="legend"><span><i class="sw" style="background:var(--cds-chart-muted)"></i>Creator</span><span><i class="sw" data-draw="sw-brand"></i>Infinix brand</span></div>
+        <div class="chart tall" data-draw="c-top" data-source="content"></div>
+      </div>
+      <div class="card">
+        <h3 id="praise">What fans loved</h3>
+        <p class="muted">Most-liked positive comments. Desire for the device, the design and the cooler is real: the objection is the price, not the product.</p>
+        <ul class="praise" data-draw="praise" data-source="comments"></ul>
+      </div>
+    </div>
+  </section>
+
+  <section id="sentiment">
+    <h2>Where sentiment stands</h2>
+    <p class="muted">Share of comments by tone, from a random sample that we read and labelled by hand. Net score is positive share minus negative share.</p>
+    <div class="grid">
+      <div class="card">
+        <h3>Tone of the conversation, by platform</h3>
+        <div class="legend"><span><i class="sw ok"></i>Positive</span><span><i class="sw neu"></i>Neutral or off-topic</span><span><i class="sw bad"></i>Negative</span></div>
+        <div class="chart" data-draw="c-split" data-source="sample_split"></div>
+      </div>
+      <div class="tiles">
+        <div class="card tile"><span class="lbl">Net sentiment: YouTube</span><span class="big tone-neg" data-draw="net-yt" data-source="sample_split" data-field="net" data-where="platform=YouTube">—</span><span class="muted">Long-form reviewers draw the spec-sheet crowd</span></div>
+        <div class="card tile"><span class="lbl">Net sentiment: Instagram</span><span class="big tone-neg" data-draw="net-ig" data-source="sample_split" data-field="net" data-where="platform=Instagram">—</span><span class="muted">Warmer: more hype, purchase intent and pre-booking replies</span></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="themes" class="risk">
+    <p class="eyebrow">What the audience pushed back on, and what they liked</p>
+    <h2>Price, not product, is driving the negative conversation</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>Themes by tone</h3>
+        <p class="muted">Comments mentioning each theme, split into negative (left) and positive (right). Cooling, design and gaming performance draw the most praise. Price, competitor comparisons and the phone-only ask draw almost none.</p>
+        <div class="legend"><span><i class="sw bad"></i>Negative mentions</span><span><i class="sw ok"></i>Positive mentions</span></div>
+        <div class="chart tall" data-draw="c-themes" data-source="themes"></div>
+      </div>
+      <div class="card">
+        <h3 id="critical">Most-liked critical comments</h3>
+        <p class="muted">These are the comments the public pushed to the top. Nearly every one is about the ₹70K price tag or a cheaper rival.</p>
+        <div class="scroll">
+          <table data-source="comments" data-row-key="rank">
+            <thead><tr><th data-field="rank">#</th><th data-field="comment">Comment</th><th data-field="platform">Platform</th><th class="n" data-field="likes">Likes</th></tr></thead>
+            <tbody data-draw="crit"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section id="decisions" class="act">
+    <p class="eyebrow">For the CXO table</p>
+    <h2>Five decisions this data supports</h2>
+    <div class="dec">
+      <div class="card"><h3>Launch a phone-only SKU</h3><p>The most consistent ask: "launch the standalone version", "34,999 ✅ 69,999 ❌". A ₹35–40K phone-only price brings back the buyers the bundle priced out, without diluting the kit.</p><p class="ev"><b data-draw="e-phone" data-source="themes" data-field="mentions" data-where="theme=Phone-only SKU demand">—</b> comments ask for the phone without the kit</p></div>
+      <div class="card"><h3>Sell the bundle as value, not as a price</h3><p>Creator posts that walk through controller, dock and cooler "in one box" did best. Lead with the itemised value of the kit and how much a buyer saves, and give creators that framing.</p><p class="ev"><b data-draw="e-mohit" data-source="content" data-field="views" data-where="id=DfFChJ1AgAL">—</b> plays on the top "worth it?" creator reel</p></div>
+      <div class="card"><h3>Win the spec-sheet fight on gameplay</h3><p>Rival-chip comparisons (iQOO 15R, OPPO K13 Turbo Pro, POCO X8 Pro) dominate YouTube. Answer with sustained-FPS and thermal proof from long gaming sessions, not with spec claims.</p><p class="ev"><b data-draw="e-comp" data-source="themes" data-field="mentions" data-where="theme=Switching to competitors">—</b> comments name a competitor</p></div>
+      <div class="card"><h3>Run a service-recovery sprint for GT 20/30 owners</h3><p>Owners of older GT phones are using launch posts to raise update and warranty problems, and some are spamming "don't buy" on brand posts. Set up a public-reply protocol and a fast-track service desk now.</p><p class="ev"><b data-draw="e-service" data-source="themes" data-field="mentions" data-where="theme=Service %26 older GT updates">—</b> comments about service or older-device updates</p></div>
+      <div class="card"><h3>Retire #GT50 and consolidate on owned tags</h3><p>#GT50 is shared with a viral ₹5K camera drone, so our posts get lost among drone reviews. Move all amplification to #InfinixGT50Pro and #GameTogether.</p><p class="ev">Only <b data-draw="e-gt50" data-source="hashtag_share" data-field="share" data-where="key=GT50-YT">—</b> of the top #GT50 YouTube results are about the phone</p></div>
+    </div>
+  </section>
+
+  <section id="leaderboard">
+    <h2>Content leaderboard: brand and creators</h2>
+    <p class="muted">Every piece we tracked. Comment tone is positive minus negative comments, as a share of the comments read on that post (auto-scored). Click a heading to sort.</p>
+    <div class="card">
+      <input class="search" type="search" placeholder="Filter by account or title" aria-label="Filter content">
+      <div class="scroll">
+        <table data-source="content" data-row-key="id">
+          <thead><tr>
+            <th data-field="account"><button data-sort="account">Account</button></th>
+            <th data-field="platform"><button data-sort="platform">Platform</button></th>
+            <th data-field="owner"><button data-sort="owner">Owner</button></th>
+            <th data-field="title">Content</th>
+            <th data-field="date"><button data-sort="date">Date</button></th>
+            <th class="n" data-field="views"><button data-sort="views">Views</button></th>
+            <th class="n" data-field="likes"><button data-sort="likes">Likes</button></th>
+            <th class="n" data-field="comments"><button data-sort="comments">Comments</button></th>
+            <th class="n" data-source="content_tone" data-field="net_tone"><button data-sort="net_tone">Comment tone</button></th>
+          </tr></thead>
+          <tbody data-draw="lb"></tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <section id="hashtags">
+    <h2>Hashtag health</h2>
+    <div class="card">
+      <table data-source="hashtag_share" data-row-key="key">
+        <thead><tr><th data-field="hashtag">Hashtag</th><th data-field="platform">Platform</th><th class="n" data-field="checked">Posts checked</th><th class="n" data-field="on_product">About GT50 Pro</th><th class="n" data-field="share">Share</th></tr></thead>
+        <tbody data-draw="hash"></tbody>
+      </table>
+    </div>
+  </section>
+
+  <section id="method" class="card">
+    <h3>How this was measured</h3>
+    <p class="muted">Snapshot taken 30 Oct 2026 from public Instagram posts under #InfinixGT50Pro, #GameTogether and #GT50, and from the top YouTube results for the same tags. We kept India-market content from 1 Oct onward and dropped posts from Infinix Pakistan, Malaysia, Nepal, Indonesia and Latin America. Comments are mostly Hinglish, which keyword scoring handles poorly, so the headline tone split comes from random samples we read by hand (100 YouTube comments and 80 Instagram comments). The theme and per-post tone figures are keyword-scored and directional only. Instagram and YouTube don't show share counts publicly, so content is ranked by views, likes and comments. Repeated spam from a few accounts was counted once.</p>
+  </section>
+</div>
+
+<script>
+window.gtf={
+  n:d3.format(','),
+  c:v=>Intl.NumberFormat('en',{notation:'compact',maximumFractionDigits:1}).format(v),
+  p:d3.format('.0%'),
+  sp:v=>(v>0?'+':'')+Math.round(v*100),
+  ok:id=>dash.data(id).status==='ok',
+  tip(box){let t=box.querySelector('.tip');if(!t){t=document.createElement('div');t.className='tip';t.hidden=true;box.appendChild(t);}return t;},
+  place(t,box,ev){const r=box.getBoundingClientRect();let x=ev.clientX-r.left+12,y=ev.clientY-r.top+12;const w=t.offsetWidth,h=t.offsetHeight;if(x+w>r.width)x=Math.max(0,ev.clientX-r.left-w-12);if(y+h>r.height)y=Math.max(0,ev.clientY-r.top-h-12);t.style.left=x+'px';t.style.top=y+'px';},
+  fail(el){el.replaceChildren();const d=document.createElement('div');d.style.cssText='display:flex;align-items:center;justify-content:center;gap:.4rem;min-height:inherit;height:100%;font-size:var(--cds-font-size-caption);color:var(--color-fg-muted)';const dot=document.createElement('span');dot.style.cssText='width:.375rem;height:.375rem;border-radius:50%;background:var(--color-bad)';const s=document.createElement('span');s.textContent='Failed to load';d.append(dot,s);el.appendChild(d);}
+};
+
+dash.calc('totals',{inputs:['platform_kpis'],title:'Combined reach',description:'Sums views, posts and creators across both platforms.',
+  fn:(platform_kpis)=>[{views:d3.sum(platform_kpis,r=>+r.views),content_pieces:d3.sum(platform_kpis,r=>+r.content_pieces),creators:d3.sum(platform_kpis,r=>+r.creators),comments_read:d3.sum(platform_kpis,r=>+r.comments_read)}]});
+dash.calc('sample_split',{inputs:['platform_kpis'],title:'Hand-coded tone split',description:'Positive, neutral and negative share of each platform\'s hand-read sample; net = positive minus negative.',
+  fn:(platform_kpis)=>platform_kpis.map(r=>({platform:r.platform,positive:r.sample_pos/r.sample_n,neutral:r.sample_neu/r.sample_n,negative:r.sample_neg/r.sample_n,net:(r.sample_pos-r.sample_neg)/r.sample_n}))});
+dash.calc('price_share',{inputs:['themes','platform_kpis'],title:'Price share of comments',description:'Comments mentioning price, as a share of all comments read.',
+  fn:(themes,platform_kpis)=>[{share:themes.find(t=>t.theme.startsWith('Price')).mentions/d3.sum(platform_kpis,r=>+r.comments_read)}]});
+dash.calc('hashtag_share',{inputs:['hashtags'],title:'Hashtag relevance',description:'Share of checked posts per hashtag that are about the GT50 Pro phone.',
+  fn:(hashtags)=>hashtags.map(h=>({key:h.hashtag.replace('#','')+'-'+(h.platform==='Instagram'?'IG':'YT'),hashtag:h.hashtag,platform:h.platform,checked:h.checked,on_product:h.on_product,share:h.on_product/h.checked}))});
+dash.calc('content_tone',{inputs:['content'],title:'Comment tone per post',description:'Positive minus negative comments, over comments read on that post.',
+  fn:(content)=>content.map(r=>({id:r.id,net_tone:r.read_n?(r.read_pos-r.read_neg)/r.read_n:null}))});
+
+const one=(id,fmt,pick)=>el=>{const d=dash.data(id);if(d.status!=='ok'){el.textContent='—';return;}const row=pick?d.data.find(pick):d.data[0];el.textContent=row?fmt(row):'—';};
+dash.draw('h-views',one('totals',r=>gtf.c(r.views)));
+dash.draw('t-views',one('totals',r=>gtf.c(r.views)));
+dash.draw('h-pieces',one('totals',r=>gtf.n(r.content_pieces)));
+dash.draw('t-creators',one('totals',r=>gtf.n(r.creators)));
+dash.draw('h-price',one('price_share',r=>gtf.p(r.share)));
+dash.draw('t-top',one('content',r=>gtf.c(r.views),r=>r.id==='yzgY1wVb4aU'));
+dash.draw('e-mohit',one('content',r=>gtf.c(r.views),r=>r.id==='DfFChJ1AgAL'));
+dash.draw('t-gt',one('hashtag_share',r=>gtf.p(r.share),r=>r.key==='GameTogether-IG'));
+dash.draw('e-gt50',one('hashtag_share',r=>gtf.p(r.share),r=>r.key==='GT50-YT'));
+dash.draw('net-yt',one('sample_split',r=>gtf.sp(r.net),r=>r.platform==='YouTube'));
+dash.draw('net-ig',one('sample_split',r=>gtf.sp(r.net),r=>r.platform==='Instagram'));
+dash.draw('e-phone',one('themes',r=>gtf.n(r.mentions),r=>r.theme==='Phone-only SKU demand'));
+dash.draw('e-comp',one('themes',r=>gtf.n(r.mentions),r=>r.theme==='Switching to competitors'));
+dash.draw('e-service',one('themes',r=>gtf.n(r.mentions),r=>r.theme==='Service & older GT updates'));
+dash.draw('sw-brand',el=>{el.style.background=dash.colors[0];});
+</script>
+
+<script>
+// Top content bar chart
+dash.draw('c-top',el=>{
+  const d=dash.data('content');el.replaceChildren();
+  if(d.status==='error'){gtf.fail(el);return;} if(d.status!=='ok')return;
+  const rows=d.data.filter(r=>+r.views>0).sort((a,b)=>b.views-a.views).slice(0,12);
+  const W=el.clientWidth||600,bh=22,gap=8,H=rows.length*(bh+gap)+10;
+  const svg=d3.select(el).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
+  const lab=svg.append('g');
+  const labels=rows.map(r=>r.account+(r.platform==='YouTube'?' · YT':' · IG'));
+  const t=lab.selectAll('text').data(labels).join('text').attr('font-size',12).attr('fill','var(--color-fg)').text(x=>x);
+  const lw=Math.min(W*0.42,d3.max(t.nodes(),n=>n.getComputedTextLength())+8);
+  t.attr('x',lw-8).attr('text-anchor','end').attr('y',(x,i)=>i*(bh+gap)+bh/2+4);
+  const vlab=rows.map(r=>gtf.c(r.views));
+  const x=d3.scaleLinear([0,d3.max(rows,r=>+r.views)],[0,Math.max(10,W-lw-56)]);
+  const box=el,tip=gtf.tip(box);
+  svg.append('g').selectAll('rect').data(rows).join('rect').attr('x',lw).attr('y',(r,i)=>i*(bh+gap)).attr('height',bh).attr('rx',3)
+    .attr('width',r=>Math.max(2,x(+r.views))).attr('fill',r=>r.owner==='Brand'?dash.colors[0]:'var(--cds-chart-muted)')
+    .on('pointermove',(ev,r)=>{tip.hidden=false;tip.replaceChildren();const a=document.createElement('div');a.className='k';a.textContent=r.account+' · '+r.platform;const b=document.createElement('div');b.textContent=r.title;const c=document.createElement('div');c.textContent=gtf.n(r.views)+' views · '+gtf.n(r.likes)+' likes · '+gtf.n(r.comments)+' comments';tip.append(a,b,c);gtf.place(tip,box,ev);})
+    .on('pointerleave',()=>{tip.hidden=true;});
+  svg.append('g').selectAll('text').data(rows).join('text').attr('x',r=>lw+Math.max(2,x(+r.views))+6).attr('y',(r,i)=>i*(bh+gap)+bh/2+4)
+    .attr('font-size',12).attr('fill','var(--color-fg-muted)').text((r,i)=>vlab[i]);
+});
+
+// Tone split chart
+dash.draw('c-split',el=>{
+  const d=dash.data('sample_split');el.replaceChildren();
+  if(d.status==='error'){gtf.fail(el);return;} if(d.status!=='ok')return;
+  const rows=d.data,W=el.clientWidth||500,bh=34,gap=26,lw=80,H=rows.length*(bh+gap)+4;
+  const svg=d3.select(el).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
+  const x=d3.scaleLinear([0,1],[lw,W-4]);const segs=[['positive','var(--color-ok)'],['neutral','var(--cds-chart-muted)'],['negative','var(--color-bad)']];
+  const tip=gtf.tip(el);
+  rows.forEach((r,i)=>{const y=i*(bh+gap)+14;svg.append('text').attr('x',0).attr('y',y+bh/2+4).attr('font-size',12).attr('fill','var(--color-fg)').text(r.platform);
+    let acc=0;segs.forEach(([k,c])=>{const w=x(acc+r[k])-x(acc);svg.append('rect').attr('x',x(acc)).attr('y',y).attr('width',Math.max(0,w-1)).attr('height',bh).attr('fill',c).attr('rx',2)
+      .on('pointermove',ev=>{tip.hidden=false;tip.replaceChildren();const a=document.createElement('div');a.className='k';a.textContent=r.platform;const b=document.createElement('div');b.textContent=k[0].toUpperCase()+k.slice(1)+': '+gtf.p(r[k]);tip.append(a,b);gtf.place(tip,el,ev);}).on('pointerleave',()=>{tip.hidden=true;});
+      if(w>34)svg.append('text').attr('x',x(acc)+6).attr('y',y+bh/2+4).attr('font-size',12).attr('fill',k==='neutral'?'var(--color-fg)':'var(--color-bg)').attr('pointer-events','none').text(gtf.p(r[k]));acc+=r[k];});});
+});
+
+// Theme diverging chart
+dash.draw('c-themes',el=>{
+  const d=dash.data('themes');el.replaceChildren();
+  if(d.status==='error'){gtf.fail(el);return;} if(d.status!=='ok')return;
+  const rows=[...d.data].sort((a,b)=>b.mentions-a.mentions);const W=el.clientWidth||600,bh=20,gap=12,H=rows.length*(bh+gap)+24;
+  const svg=d3.select(el).append('svg').attr('width','100%').attr('viewBox',`0 0 ${W} ${H}`).style('display','block');
+  const t=svg.append('g').selectAll('text').data(rows).join('text').attr('font-size',12).attr('fill','var(--color-fg)').text(r=>r.theme);
+  const lw=Math.min(W*0.45,d3.max(t.nodes(),n=>n.getComputedTextLength())+10);
+  t.attr('x',0).attr('y',(r,i)=>i*(bh+gap)+bh/2+4+20);
+  const mx=d3.max(rows,r=>Math.max(+r.negative,+r.positive));const half=(W-lw-40)/2;const mid=lw+20+half*1.3;
+  const xn=d3.scaleLinear([0,mx],[0,half*1.3]),xp=d3.scaleLinear([0,mx],[0,half*0.7]);
+  svg.append('line').attr('x1',mid).attr('x2',mid).attr('y1',14).attr('y2',H).attr('stroke','var(--cds-chart-axis)');
+  svg.append('text').attr('x',mid-6).attr('y',10).attr('text-anchor','end').attr('font-size',11).attr('fill','var(--color-fg-muted)').text('Negative');
+  svg.append('text').attr('x',mid+6).attr('y',10).attr('font-size',11).attr('fill','var(--color-fg-muted)').text('Positive');
+  const tip=gtf.tip(el);
+  const show=(ev,r)=>{tip.hidden=false;tip.replaceChildren();const a=document.createElement('div');a.className='k';a.textContent=r.theme;const b=document.createElement('div');b.textContent=gtf.n(r.mentions)+' mentions · '+gtf.n(r.negative)+' negative · '+gtf.n(r.positive)+' positive';const c=document.createElement('div');c.textContent='YouTube '+gtf.n(r.youtube_mentions)+' · Instagram '+gtf.n(r.instagram_mentions);tip.append(a,b,c);gtf.place(tip,el,ev);};
+  rows.forEach((r,i)=>{const y=i*(bh+gap)+20;
+    svg.append('rect').attr('x',mid-xn(+r.negative)).attr('y',y).attr('width',Math.max(1,xn(+r.negative))).attr('height',bh).attr('rx',3).attr('fill','var(--color-bad)').on('pointermove',ev=>show(ev,r)).on('pointerleave',()=>{tip.hidden=true;});
+    svg.append('rect').attr('x',mid+1).attr('y',y).attr('width',Math.max(1,xp(+r.positive))).attr('height',bh).attr('rx',3).attr('fill','var(--color-ok)').on('pointermove',ev=>show(ev,r)).on('pointerleave',()=>{tip.hidden=true;});
+    svg.append('text').attr('x',mid-xn(+r.negative)-4).attr('y',y+bh/2+4).attr('text-anchor','end').attr('font-size',11).attr('fill','var(--color-fg-muted)').text(gtf.n(r.negative));
+    svg.append('text').attr('x',mid+xp(+r.positive)+5).attr('y',y+bh/2+4).attr('font-size',11).attr('fill','var(--color-fg-muted)').text(gtf.n(r.positive));});
+});
+
+// Praise list
+dash.draw('praise',el=>{
+  const d=dash.data('comments');el.replaceChildren();if(d.status!=='ok')return;
+  d.data.filter(r=>r.tone==='Praise').sort((a,b)=>b.likes-a.likes).slice(0,9).forEach(r=>{const li=document.createElement('li');const q=document.createElement('div');q.className='q';q.textContent='"'+r.comment+'"';const m=document.createElement('div');m.className='muted';m.textContent=r.platform+' · '+r.theme+' · '+gtf.n(r.likes)+' likes';li.append(q,m);el.appendChild(li);});
+});
+
+// Critical comments
+dash.draw('crit',el=>{
+  const d=dash.data('comments');el.replaceChildren();if(d.status!=='ok')return;
+  d.data.filter(r=>r.tone==='Critical').sort((a,b)=>b.likes-a.likes).forEach(r=>{const tr=document.createElement('tr');[[r.rank,''],[r.comment,''],[r.platform,''],[gtf.n(r.likes),'n']].forEach(([v,c])=>{const td=document.createElement('td');td.textContent=v;if(c)td.className=c;tr.appendChild(td);});el.appendChild(tr);});
+});
+
+// Hashtag table
+dash.draw('hash',el=>{
+  const d=dash.data('hashtag_share');el.replaceChildren();if(d.status!=='ok')return;
+  d.data.forEach(r=>{const tr=document.createElement('tr');tr.dataset.key=r.key;[[r.hashtag,''],[r.platform,''],[gtf.n(r.checked),'n'],[gtf.n(r.on_product),'n'],[gtf.p(r.share),'n '+(r.share<0.5?'tone-neg':'tone-pos')]].forEach(([v,c])=>{const td=document.createElement('td');td.textContent=v;if(c)td.className=c;tr.appendChild(td);});el.appendChild(tr);});
+});
+
+// Leaderboard with sort + search
+window.gtLB={key:'views',dir:-1,q:''};
+dash.draw('lb',el=>{
+  const d=dash.data('content'),t=dash.data('content_tone');el.replaceChildren();if(d.status!=='ok')return;
+  const tone=new Map((t.status==='ok'?t.data:[]).map(r=>[r.id,r.net_tone]));
+  let rows=d.data.map(r=>({...r,net_tone:tone.get(r.id)}));
+  const q=gtLB.q.toLowerCase();if(q)rows=rows.filter(r=>(r.account+' '+r.title).toLowerCase().includes(q));
+  const k=gtLB.key;rows.sort((a,b)=>{const x=a[k],y=b[k];if(x==null)return 1;if(y==null)return -1;return (typeof x==='number'?x-y:String(x).localeCompare(String(y)))*gtLB.dir;});
+  rows.forEach(r=>{const tr=document.createElement('tr');tr.dataset.key=r.id;
+    const acc=document.createElement('td');const a=document.createElement('a');a.href=r.url;a.target='_blank';a.rel='noopener';a.textContent=r.account;acc.appendChild(a);tr.appendChild(acc);
+    const cells=[[r.platform,''],[r.owner,''],[r.title,''],[d3.utcFormat('%b %-d')(new Date(r.date)),''],[+r.views?gtf.c(+r.views):'Photo','n'],[gtf.c(+r.likes),'n'],[gtf.n(+r.comments),'n'],[r.net_tone==null?'—':gtf.sp(r.net_tone),'n '+(r.net_tone>0?'tone-pos':r.net_tone<0?'tone-neg':'')]];
+    cells.forEach(([v,c])=>{const td=document.createElement('td');td.textContent=v;if(c)td.className=c;tr.appendChild(td);});el.appendChild(tr);});
+});
+document.querySelectorAll('.gt [data-sort]').forEach(b=>b.addEventListener('click',()=>{const k=b.dataset.sort;gtLB.dir=gtLB.key===k?-gtLB.dir:(['account','platform','owner'].includes(k)?1:-1);gtLB.key=k;document.querySelectorAll('.gt [data-sort]').forEach(x=>x.closest('th').setAttribute('aria-sort',x.dataset.sort===k?(gtLB.dir>0?'ascending':'descending'):'none'));dash.draw('lb');}));
+document.querySelectorAll('.gt input.search').forEach(i=>i.addEventListener('input',()=>{gtLB.q=i.value;dash.draw('lb');}));
+</script>
+</div>
+<div class="export-note">Snapshot of public Instagram and YouTube data, 30 Oct 2026. Offline export.</div><script>__runAll();</script></body></html>
